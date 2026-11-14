@@ -18,6 +18,8 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 SETTINGS_PATH = os.path.join(DATA_DIR, "settings.json")
 PROGRESS_PATH = os.path.join(DATA_DIR, "progress.json")
 WORDS_DIR = os.path.join(DATA_DIR, "words")
+IMAGES_DIR = os.path.join(DATA_DIR, "images")
+VOICE_DIR = os.path.join(DATA_DIR, "voice")
 BUNDLED_WORDS_DIR = os.path.join(BUNDLE_DIR, "data", "words")
 
 DEFAULT_SETTINGS = {
@@ -26,6 +28,9 @@ DEFAULT_SETTINGS = {
     "words_per_quiz": 1,          # 每次弹窗需要答对的词数
     "scope": "all",               # 出题范围：all / grade7 / grade8 / grade9 / wrong
     "hint_after": 2,              # 答错几次后显示字母提示
+    "hint_plaintext": False,      # 答错时直接显示完整单词（明文提示）
+    "show_image": True,           # 弹窗中显示单词图片
+    "speak_word": True,           # 弹窗时自动朗读单词
     "allow_parent_skip": True,    # 允许家长密码跳过本次弹窗
     "pause_minutes_after_skip": 15,  # 家长跳过后暂停管控的分钟数
     "daily_target": 20,           # 每日目标词数（进度条）
@@ -48,6 +53,8 @@ AUTOSTART_NAME = "屏幕管控.bat"
 def ensure_dirs():
     os.makedirs(DATA_DIR, exist_ok=True)
     os.makedirs(WORDS_DIR, exist_ok=True)
+    os.makedirs(IMAGES_DIR, exist_ok=True)
+    os.makedirs(VOICE_DIR, exist_ok=True)
 
 
 def seed_words():

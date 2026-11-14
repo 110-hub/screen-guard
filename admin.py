@@ -102,6 +102,9 @@ class AdminWindow(tk.Toplevel):
         self.var_scope = tk.StringVar(value=config.SCOPE_LABELS.get(s["scope"], "全部词库"))
         self.var_enabled = tk.BooleanVar(value=bool(s["enabled"]))
         self.var_allow_skip = tk.BooleanVar(value=bool(s["allow_parent_skip"]))
+        self.var_plain = tk.BooleanVar(value=bool(s.get("hint_plaintext", False)))
+        self.var_image = tk.BooleanVar(value=bool(s.get("show_image", True)))
+        self.var_speak = tk.BooleanVar(value=bool(s.get("speak_word", True)))
 
         self._row_spin(card, 1, "弹窗周期", self.var_interval, 1, 180, "分钟", "到点自动弹出中文释义，要求输入英文")
         quick = tk.Frame(card, bg=CARD)
@@ -133,6 +136,12 @@ class AdminWindow(tk.Toplevel):
                         variable=self.var_enabled).pack(anchor="w")
         ttk.Checkbutton(checks, text="允许家长用密码跳过本次弹窗",
                         variable=self.var_allow_skip).pack(anchor="w", pady=(6, 0))
+        ttk.Checkbutton(checks, text="明文提示单词（答错时直接显示完整拼写）",
+                        variable=self.var_plain).pack(anchor="w", pady=(6, 0))
+        ttk.Checkbutton(checks, text="显示单词图片（data/images 下按单词名放图）",
+                        variable=self.var_image).pack(anchor="w", pady=(6, 0))
+        ttk.Checkbutton(checks, text="自动朗读单词（使用 Windows 语音）",
+                        variable=self.var_speak).pack(anchor="w", pady=(6, 0))
 
         card.columnconfigure(1, weight=0)
 
@@ -410,6 +419,9 @@ class AdminWindow(tk.Toplevel):
             "scope": scope,
             "enabled": bool(self.var_enabled.get()),
             "allow_parent_skip": bool(self.var_allow_skip.get()),
+            "hint_plaintext": bool(self.var_plain.get()),
+            "show_image": bool(self.var_image.get()),
+            "speak_word": bool(self.var_speak.get()),
         })
         self.controller.apply_settings()
         self.save_tip.config(text="已保存 ✓")
@@ -427,6 +439,9 @@ class AdminWindow(tk.Toplevel):
         self.var_scope.set(config.SCOPE_LABELS[default["scope"]])
         self.var_enabled.set(default["enabled"])
         self.var_allow_skip.set(default["allow_parent_skip"])
+        self.var_plain.set(default["hint_plaintext"])
+        self.var_image.set(default["show_image"])
+        self.var_speak.set(default["speak_word"])
 
     def _test_quiz(self):
         self.controller.trigger_quiz(manual=True)

@@ -119,7 +119,7 @@ def write_uninstall_registry(install_dir, exe_path):
     except OSError:
         return False
     values = {"DisplayName": (APP_NAME + " - 初中英语单词锁屏", winreg.REG_SZ),
-              "DisplayVersion": ("1.0.0", winreg.REG_SZ),
+              "DisplayVersion": ("1.1.0", winreg.REG_SZ),
               "Publisher": (APP_NAME, winreg.REG_SZ),
               "DisplayIcon": (exe_path, winreg.REG_SZ),
               "InstallLocation": (install_dir, winreg.REG_SZ),

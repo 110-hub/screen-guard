@@ -1,10 +1,66 @@
 # -*- coding: utf-8 -*-
 """全屏答题遮罩：显示中文释义，必须输入正确英文才能关闭。"""
+import os
 import time
 import tkinter as tk
 
+import config
+import speech
 import ui_common
 from ui_common import font, ACCENT, BG, CARD, CARD_LIGHT, ERR, LINE, MUTED, OK, TEXT, WARN
+
+try:
+    from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageTk
+    HAS_PIL = True
+except Exception:          # 缺少 Pillow 时退化为文字卡片
+    HAS_PIL = False
+
+IMAGE_SIZE = (300, 150)
+IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif")
+
+
+def word_image_path(word):
+    """data/images 下按单词名找图，如 environment.jpg、look_after.png。"""
+    base = normalize(word).replace(" ", "_")
+    for ext in IMAGE_EXTS:
+        path = os.path.join(config.IMAGES_DIR, base + ext)
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def _font(name, size):
+    try:
+        return ImageFont.truetype(name, size)
+    except OSError:
+        return None
+
+
+def placeholder_image(word):
+    """没有配图时生成的占位图：首字母 + 提示如何补图。"""
+    width, height = IMAGE_SIZE
+    image = Image.new("RGB", IMAGE_SIZE, CARD)
+    draw = ImageDraw.Draw(image)
+    draw.rounded_rectangle([1, 1, width - 2, height - 2], radius=14, fill="#222a3a",
+                           outline=LINE, width=2)
+    font_big = _font("arialbd.ttf", 72) or ImageFont.load_default()
+    draw.text((width / 2, height / 2 - 14), (word or "?")[0].upper(),
+              font=font_big, fill=ACCENT, anchor="mm")
+    font_small = _font("msyh.ttc", 13) or ImageFont.load_default()
+    draw.text((width / 2, height - 18),
+              "把图片放到 data/images/%s.jpg" % (word or "").replace(" ", "_"),
+              font=font_small, fill=MUTED, anchor="mm")
+    return image
+
+
+def load_word_image(word):
+    path = word_image_path(word)
+    if path:
+        try:
+            return ImageOps.fit(Image.open(path).convert("RGB"), IMAGE_SIZE)
+        except Exception:
+            pass
+    return placeholder_image(word)
 
 
 def _monitor_rects():
@@ -71,6 +127,7 @@ class QuizOverlay(tk.Toplevel):
         self.started_at = time.time()
         self.closed = False
         self.blind_windows = []
+        self._photo = None
 
         self.configure(bg=BG)
         self.title("单词闯关")
@@ -125,8 +182,13 @@ class QuizOverlay(tk.Toplevel):
         self.index_label = tk.Label(inner, text="", bg=CARD, fg=MUTED, font=font(11))
         self.index_label.pack(anchor="w")
 
+        self.image_box = tk.Frame(inner, bg=CARD)
+        self.image_box.pack(pady=(8, 4))
+        self.image_label = tk.Label(self.image_box, bg=CARD, bd=0)
+        self.image_label.pack()
+
         self.pos_label = tk.Label(inner, text="", bg=CARD, fg=WARN, font=font(14, "bold"))
-        self.pos_label.pack(pady=(22, 4))
+        self.pos_label.pack(pady=(14, 4))
 
         self.meaning_label = tk.Label(inner, text="", bg=CARD, fg=TEXT,
                                       font=font(38, "bold"), wraplength=760, justify="center")
@@ -152,11 +214,19 @@ class QuizOverlay(tk.Toplevel):
         self.feedback_label = tk.Label(inner, text="", bg=CARD, fg=ERR, font=font(13, "bold"))
         self.feedback_label.pack(pady=(4, 0))
 
+        btn_row = tk.Frame(inner, bg=CARD)
+        btn_row.pack(pady=(18, 0))
         self.submit_btn = tk.Button(
-            inner, text="提交答案  ( Enter )", command=self._submit,
+            btn_row, text="提交答案  ( Enter )", command=self._submit,
             bg=ACCENT, fg="#ffffff", activebackground="#3d64d6", activeforeground="#ffffff",
             relief="flat", bd=0, font=font(13, "bold"), padx=44, pady=12, cursor="hand2")
-        self.submit_btn.pack(pady=(18, 0))
+        self.submit_btn.pack(side="left")
+        self.speak_btn = tk.Button(
+            btn_row, text="听发音", command=self._speak_current,
+            bg=CARD_LIGHT, fg=TEXT, activebackground=LINE, activeforeground=TEXT,
+            relief="flat", bd=0, font=font(11), padx=20, pady=12, cursor="hand2")
+        if speech.available():
+            self.speak_btn.pack(side="left", padx=(10, 0))
 
         footer = tk.Frame(self, bg=BG, padx=48, pady=20)
         footer.pack(fill="x")
@@ -182,8 +252,31 @@ class QuizOverlay(tk.Toplevel):
         self.feedback_label.config(text="")
         self.entry.config(state="normal", highlightbackground=LINE)
         self.entry.delete(0, "end")
+        self._render_image(entry["word"])
         self._update_stat()
         self.after(40, self._focus_entry)
+        if self.settings.get("speak_word"):
+            self.after(300, lambda w=entry["word"]: speech.speak(w))
+
+    def _render_image(self, word):
+        """显示该词的配图；没有图片时显示占位图，可关闭。"""
+        if not self.settings.get("show_image", True) or not HAS_PIL:
+            self.image_label.pack_forget()
+            self._photo = None
+            return
+        try:
+            image = load_word_image(word)
+            self._photo = ImageTk.PhotoImage(image)
+            self.image_label.config(image=self._photo)
+            if not self.image_label.winfo_ismapped():
+                self.image_label.pack()
+        except Exception:
+            self.image_label.pack_forget()
+            self._photo = None
+
+    def _speak_current(self):
+        if self.index < len(self.words_picked):
+            speech.speak(self.words_picked[self.index]["word"])
 
     def _update_stat(self):
         progress = self.controller.progress
@@ -283,7 +376,10 @@ class QuizOverlay(tk.Toplevel):
         self._flash("✘ “%s” 不是正确答案，再试一次" % answer, ERR)
         hint_after = int(self.settings.get("hint_after", 2))
         if hint_after > 0:
-            self._show_hint(entry["word"], answer, self.attempts >= hint_after)
+            if self.settings.get("hint_plaintext"):
+                self.hint_label.config(text="正确拼写：%s" % entry["word"], fg=WARN)
+            else:
+                self._show_hint(entry["word"], answer, self.attempts >= hint_after)
         self.entry.delete(0, "end")
         self._update_stat()
 
