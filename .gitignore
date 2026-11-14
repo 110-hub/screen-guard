@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# 打包产物
+build/
+dist/
+*.spec
+发布/
+_work/
+.screenshots/
+debug.log
+
+# 本机运行数据（保留词库）
+data/*
+!data/words/
+
+# 编辑器 / 工具
+.vscode/
+.trae/
