@@ -13,15 +13,15 @@
 
 ## 零、安装（推荐给普通使用者，不需要装 Python）
 
-从 [Releases](https://github.com/110-hub/screen-guard/releases) 下载 **`ScreenGuard-Setup-1.0.0.exe`**（约 29 MB，单文件安装器）。
+从 [Releases](https://github.com/110-hub/screen-guard/releases) 下载最新的 **`ScreenGuard-Setup-x.y.z.exe`**（约 29 MB，单文件安装器）。
 
 1. 双击运行，点「开始安装」（会自动结束已运行的旧版本）。
 2. 安装器会自动完成：解压到 `%LOCALAPPDATA%\Programs\ScreenGuard`、创建桌面与开始菜单
    快捷方式、加入开机静默启动、注册到 Windows「应用和功能」列表，然后启动程序。
 3. 卸载：在 Windows 设置 →「应用」里卸载，或运行 `ScreenGuard.exe --uninstall`（需家长密码）。
-4. 也可下载绿色包 `ScreenGuard-Portable-1.0.0.zip`，解压后双击 `安装.bat`（目录里的 `ScreenGuard/` 要一起保留）。
+4. 也可下载绿色包 `ScreenGuard-Portable-x.y.z.zip`，解压后双击 `安装.bat`（目录里的 `ScreenGuard/` 要一起保留）。
 
-静默安装：`ScreenGuard-Setup-1.0.0.exe --silent`。
+静默安装：`ScreenGuard-Setup-x.y.z.exe --silent`。
 
 安装版就是常驻形态：屏幕右下角托盘出现蓝色「A」图标。
 
