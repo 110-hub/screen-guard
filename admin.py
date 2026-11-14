@@ -7,7 +7,7 @@ from tkinter import messagebox, ttk
 
 import config
 import ui_common
-from ui_common import ACCENT, BG, CARD, CARD_LIGHT, ERR, LINE, MUTED, OK, TEXT, WARN, font
+from ui_common import ACCENT, ACCENT_HOVER, BG, CARD, CARD_LIGHT, ERR, LINE, MUTED, OK, TEXT, WARN, font
 
 GRADE_TEXT = {g: "小学" for g in range(1, 7)}
 GRADE_TEXT.update({7: "七年级", 8: "八年级", 9: "九年级"})
@@ -35,7 +35,7 @@ class AdminWindow(tk.Toplevel):
 
     # ----------------------------- 顶栏 -----------------------------
     def _build_header(self):
-        header = tk.Frame(self, bg=BG, padx=24, pady=16)
+        header = tk.Frame(self, bg=BG, padx=24, pady=18)
         header.pack(fill="x")
 
         tk.Label(header, text="屏幕管控后台", bg=BG, fg=TEXT,
@@ -58,7 +58,7 @@ class AdminWindow(tk.Toplevel):
         self.resume_btn = tk.Button(
             btns, text="恢复监控", command=self._resume, bg=ACCENT, fg="#ffffff",
             relief="flat", bd=0, font=font(10, "bold"), padx=14, pady=7, cursor="hand2",
-            activebackground="#3d64d6", activeforeground="#ffffff")
+            activebackground=ACCENT_HOVER, activeforeground="#ffffff")
         self.resume_btn.pack(side="right")
 
         line = tk.Frame(self, bg=LINE, height=1)
@@ -67,7 +67,7 @@ class AdminWindow(tk.Toplevel):
     # ----------------------------- 标签页 -----------------------------
     def _build_tabs(self):
         notebook = ttk.Notebook(self)
-        notebook.pack(fill="both", expand=True, padx=24, pady=14)
+        notebook.pack(fill="both", expand=True, padx=24, pady=(4, 14))
 
         self.tab_settings = tk.Frame(notebook, bg=BG)
         self.tab_words = tk.Frame(notebook, bg=BG)
@@ -88,12 +88,12 @@ class AdminWindow(tk.Toplevel):
         wrap = tk.Frame(self.tab_settings, bg=BG)
         wrap.pack(fill="both", expand=True, pady=(12, 0))
 
-        card = tk.Frame(wrap, bg=CARD, padx=26, pady=16, highlightthickness=1,
+        card = tk.Frame(wrap, bg=CARD, padx=26, pady=14, highlightthickness=1,
                         highlightbackground=LINE)
         card.pack(fill="x")
 
         tk.Label(card, text="弹窗节奏", bg=CARD, fg=TEXT, font=font(13, "bold")).grid(
-            row=0, column=0, columnspan=4, sticky="w", pady=(0, 10))
+            row=0, column=0, columnspan=4, sticky="w", pady=(0, 8))
 
         s = self.settings
         self.var_interval = tk.IntVar(value=int(s["interval_minutes"]))
@@ -133,25 +133,25 @@ class AdminWindow(tk.Toplevel):
                  font=font(9)).grid(row=6, column=2, columnspan=2, sticky="w", padx=(12, 0))
 
         checks = tk.Frame(card, bg=CARD)
-        checks.grid(row=7, column=0, columnspan=4, sticky="w", pady=(10, 0))
+        checks.grid(row=7, column=0, columnspan=4, sticky="w", pady=(8, 0))
         ttk.Checkbutton(checks, text="启用屏幕管控（关闭后不再自动弹窗）",
                         variable=self.var_enabled).pack(anchor="w")
         ttk.Checkbutton(checks, text="允许家长用密码跳过本次弹窗",
-                        variable=self.var_allow_skip).pack(anchor="w", pady=(6, 0))
+                        variable=self.var_allow_skip).pack(anchor="w", pady=(4, 0))
         ttk.Checkbutton(checks, text="明文提示单词（答错时直接显示完整拼写）",
-                        variable=self.var_plain).pack(anchor="w", pady=(6, 0))
+                        variable=self.var_plain).pack(anchor="w", pady=(4, 0))
         ttk.Checkbutton(checks, text="显示单词图片（data/images 下按单词名放图）",
-                        variable=self.var_image).pack(anchor="w", pady=(6, 0))
+                        variable=self.var_image).pack(anchor="w", pady=(4, 0))
         ttk.Checkbutton(checks, text="自动朗读单词（使用 Windows 语音）",
-                        variable=self.var_speak).pack(anchor="w", pady=(6, 0))
+                        variable=self.var_speak).pack(anchor="w", pady=(4, 0))
 
         card.columnconfigure(1, weight=0)
 
         actions = tk.Frame(wrap, bg=BG)
-        actions.pack(fill="x", pady=(18, 0))
+        actions.pack(fill="x", pady=(12, 0))
         tk.Button(actions, text="保存设置", command=self._save, bg=ACCENT, fg="#ffffff",
                   relief="flat", bd=0, font=font(11, "bold"), padx=28, pady=9,
-                  cursor="hand2", activebackground="#3d64d6",
+                  cursor="hand2", activebackground=ACCENT_HOVER,
                   activeforeground="#ffffff").pack(side="left")
         tk.Button(actions, text="恢复默认值", command=self._reset_defaults, bg=CARD_LIGHT,
                   fg=TEXT, relief="flat", bd=0, font=font(10), padx=18, pady=9,
@@ -161,27 +161,29 @@ class AdminWindow(tk.Toplevel):
         self.save_tip.pack(side="left", padx=(14, 0))
 
         # 今日概览卡片
-        overview = tk.Frame(wrap, bg=CARD, padx=26, pady=14, highlightthickness=1,
+        overview = tk.Frame(wrap, bg=CARD, padx=26, pady=12, highlightthickness=1,
                             highlightbackground=LINE)
-        overview.pack(fill="x", pady=(14, 0))
+        overview.pack(fill="x", pady=(10, 0))
         tk.Label(overview, text="今日概览", bg=CARD, fg=TEXT, font=font(13, "bold")).pack(anchor="w")
         self.overview_label = tk.Label(overview, text="", bg=CARD, fg=MUTED, font=font(11),
                                        justify="left", anchor="w")
-        self.overview_label.pack(anchor="w", pady=(8, 4))
+        self.overview_label.pack(anchor="w", pady=(6, 2))
         self.week_label = tk.Label(overview, text="", bg=CARD, fg=TEXT, font=font(11),
                                    justify="left", anchor="w")
         self.week_label.pack(anchor="w")
 
     def _row_spin(self, parent, row, label, variable, low, high, unit, tip):
         tk.Label(parent, text=label, bg=CARD, fg=TEXT, font=font(10)).grid(
-            row=row, column=0, sticky="w", pady=4)
+            row=row, column=0, sticky="w", pady=2)
         box = tk.Frame(parent, bg=CARD)
-        box.grid(row=row, column=1, sticky="w", pady=4)
+        box.grid(row=row, column=1, sticky="w", pady=2)
         spin = tk.Spinbox(box, from_=low, to=high, textvariable=variable, width=5,
                           font=font(10), justify="center", bg=CARD_LIGHT, fg=TEXT,
                           relief="flat", bd=0, insertbackground=TEXT,
+                          selectbackground=ACCENT, selectforeground="#ffffff",
                           buttonbackground=CARD_LIGHT, highlightthickness=1,
-                          highlightbackground=LINE)
+                          highlightbackground=LINE, highlightcolor=ACCENT,
+                          disabledbackground=CARD, disabledforeground=MUTED)
         spin.pack(side="left", ipady=3)
         tk.Label(box, text=unit, bg=CARD, fg=MUTED, font=font(10)).pack(side="left", padx=(6, 0))
         tk.Label(parent, text=tip, bg=CARD, fg=MUTED, font=font(9)).grid(
@@ -206,13 +208,14 @@ class AdminWindow(tk.Toplevel):
         search_row.pack(fill="x", pady=(12, 8))
         self.search_var = tk.StringVar()
         entry = tk.Entry(search_row, textvariable=self.search_var, font=font(10),
-                         bg=CARD, fg=TEXT, insertbackground=TEXT, relief="flat",
+                         bg=CARD_LIGHT, fg=TEXT, insertbackground=TEXT, relief="flat",
+                         selectbackground=ACCENT, selectforeground="#ffffff",
                          highlightthickness=1, highlightbackground=LINE, highlightcolor=ACCENT)
         entry.pack(side="left", fill="x", expand=True, ipady=6)
         entry.bind("<Return>", lambda e: self._refresh_words())
         tk.Button(search_row, text="搜索", command=self._refresh_words, bg=ACCENT, fg="#ffffff",
                   relief="flat", bd=0, font=font(10, "bold"), padx=18, pady=6,
-                  cursor="hand2", activebackground="#3d64d6",
+                  cursor="hand2", activebackground=ACCENT_HOVER,
                   activeforeground="#ffffff").pack(side="left", padx=(10, 0))
         tk.Button(search_row, text="显示全部", command=self._clear_search, bg=CARD_LIGHT, fg=TEXT,
                   relief="flat", bd=0, font=font(10), padx=14, pady=6, cursor="hand2",
@@ -282,12 +285,13 @@ class AdminWindow(tk.Toplevel):
         row = tk.Frame(card, bg=CARD)
         row.pack(fill="x")
         self.new_pw = tk.Entry(row, show="*", font=font(11), width=24, bg=CARD_LIGHT, fg=TEXT,
-                               insertbackground=TEXT, relief="flat", highlightthickness=1,
+                               insertbackground=TEXT, selectbackground=ACCENT,
+                               selectforeground="#ffffff", relief="flat", highlightthickness=1,
                                highlightbackground=LINE, highlightcolor=ACCENT)
         self.new_pw.pack(side="left", ipady=6)
         tk.Button(row, text="设置 / 修改密码", command=self._save_password, bg=ACCENT,
                   fg="#ffffff", relief="flat", bd=0, font=font(10, "bold"), padx=18, pady=7,
-                  cursor="hand2", activebackground="#3d64d6",
+                  cursor="hand2", activebackground=ACCENT_HOVER,
                   activeforeground="#ffffff").pack(side="left", padx=(10, 0))
         tk.Button(row, text="清除密码", command=self._clear_password, bg=CARD_LIGHT, fg=TEXT,
                   relief="flat", bd=0, font=font(10), padx=14, pady=7, cursor="hand2",
@@ -310,9 +314,9 @@ class AdminWindow(tk.Toplevel):
         tk.Button(btns, text="隐藏到托盘", command=lambda: self.controller.hide_admin(),
                   bg=CARD_LIGHT, fg=TEXT, relief="flat", bd=0, font=font(10), padx=20, pady=8,
                   cursor="hand2", activebackground=LINE, activeforeground=TEXT).pack(side="left")
-        tk.Button(btns, text="退出屏幕管控", command=self._quit, bg="#3a2030", fg=ERR,
+        tk.Button(btns, text="退出屏幕管控", command=self._quit, bg=CARD_LIGHT, fg=ERR,
                   relief="flat", bd=0, font=font(10, "bold"), padx=20, pady=8,
-                  cursor="hand2", activebackground="#4a2739",
+                  cursor="hand2", activebackground=LINE,
                   activeforeground=ERR).pack(side="left", padx=(10, 0))
 
         tip = tk.Label(wrap, text="提示：本程序为「中等」管控模式——全屏遮罩 + 窗口置顶，"

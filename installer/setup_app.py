@@ -25,14 +25,16 @@ for _p in (_ROOT, _HERE):
 import winutil
 
 APP_TITLE = "屏幕管控 · 安装程序"
-BG = "#14161c"
-CARD = "#1c2230"
-LINE = "#2b3446"
-TEXT = "#e8ecf6"
-MUTED = "#8f9bb3"
-ACCENT = "#4f7cff"
-OK = "#3ddc84"
-ERR = "#f2557b"
+BG = "#171717"
+CARD = "#212121"
+CARD_LIGHT = "#2c2c2c"
+LINE = "#393939"
+TEXT = "#ececec"
+MUTED = "#9d9d9d"
+ACCENT = "#4e8cff"
+ACCENT_HOVER = "#6a9bff"
+OK = "#55c9a5"
+ERR = "#f07480"
 
 TARGET_DIR = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
                           "Programs", "ScreenGuard")
@@ -179,7 +181,15 @@ class SetupApp:
         self._build()
 
     def _build(self):
-        header = tk.Frame(self.root, bg=CARD, height=92)
+        style = ttk.Style(self.root)
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+        style.configure("Horizontal.TProgressbar", background=ACCENT, troughcolor=CARD_LIGHT,
+                        borderwidth=0, thickness=6, lightcolor=ACCENT, darkcolor=ACCENT)
+
+        header = tk.Frame(self.root, bg=CARD, height=88)
         header.pack(fill="x")
         header.pack_propagate(False)
         tk.Label(header, text="屏幕管控 · 英语单词锁屏", bg=CARD, fg=TEXT,
@@ -192,7 +202,8 @@ class SetupApp:
 
         tk.Label(body, text="安装位置", bg=BG, fg=MUTED, font=font(9)).pack(anchor="w")
         tk.Label(body, text=TARGET_DIR, bg=CARD, fg=TEXT, font=font(9), anchor="w",
-                 padx=12, pady=8).pack(fill="x", pady=(4, 14))
+                 padx=12, pady=8, highlightthickness=1,
+                 highlightbackground=LINE).pack(fill="x", pady=(4, 14))
 
         opts = tk.Frame(body, bg=BG)
         opts.pack(anchor="w")
@@ -200,7 +211,7 @@ class SetupApp:
                           (self.var_startup, "开机自动启动（静默驻留托盘）"),
                           (self.var_launch, "安装完成后立即运行")):
             tk.Checkbutton(opts, text=text, variable=var, bg=BG, fg=TEXT,
-                           selectcolor=CARD, activebackground=BG, activeforeground=TEXT,
+                           selectcolor=CARD_LIGHT, activebackground=BG, activeforeground=TEXT,
                            font=font(10), bd=0, highlightthickness=0,
                            cursor="hand2").pack(anchor="w", pady=3)
 
@@ -215,11 +226,11 @@ class SetupApp:
         self.btn_install = tk.Button(buttons, text="开始安装", command=self._start,
                                      bg=ACCENT, fg="#ffffff", relief="flat", bd=0,
                                      font=font(11, "bold"), padx=28, pady=10,
-                                     cursor="hand2", activebackground="#3f68e0",
+                                     cursor="hand2", activebackground=ACCENT_HOVER,
                                      activeforeground="#ffffff")
         self.btn_install.pack(side="left")
         self.btn_close = tk.Button(buttons, text="关闭", command=self.root.destroy,
-                                   bg=CARD, fg=MUTED, relief="flat", bd=0,
+                                   bg=CARD_LIGHT, fg=TEXT, relief="flat", bd=0,
                                    font=font(10), padx=22, pady=10, cursor="hand2",
                                    activebackground=LINE, activeforeground=TEXT)
         self.btn_close.pack(side="left", padx=(10, 0))

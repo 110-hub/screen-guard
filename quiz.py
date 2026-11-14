@@ -7,7 +7,7 @@ import tkinter as tk
 import config
 import speech
 import ui_common
-from ui_common import font, ACCENT, BG, CARD, CARD_LIGHT, ERR, LINE, MUTED, OK, TEXT, WARN
+from ui_common import font, ACCENT, ACCENT_HOVER, BG, CARD, CARD_LIGHT, ERR, LINE, MUTED, OK, TEXT, WARN
 
 try:
     from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageTk
@@ -41,8 +41,8 @@ def placeholder_image(word):
     width, height = IMAGE_SIZE
     image = Image.new("RGB", IMAGE_SIZE, CARD)
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle([1, 1, width - 2, height - 2], radius=14, fill="#222a3a",
-                           outline=LINE, width=2)
+    draw.rounded_rectangle([1, 1, width - 2, height - 2], radius=12, fill=CARD_LIGHT,
+                           outline=LINE, width=1)
     font_big = _font("arialbd.ttf", 72) or ImageFont.load_default()
     draw.text((width / 2, height / 2 - 14), (word or "?")[0].upper(),
               font=font_big, fill=ACCENT, anchor="mm")
@@ -145,9 +145,9 @@ class QuizOverlay(tk.Toplevel):
 
     # ----------------------------- 界面 -----------------------------
     def _build(self):
-        header = tk.Frame(self, bg=BG, padx=48, pady=24)
+        header = tk.Frame(self, bg=BG, padx=48, pady=20)
         header.pack(fill="x")
-        tk.Label(header, text="单词闯关", bg=BG, fg=TEXT, font=font(20, "bold"),
+        tk.Label(header, text="单词闯关", bg=BG, fg=TEXT, font=font(18, "bold"),
                  anchor="w").pack(side="left")
         tk.Label(header, text="  输入正确英文后即可继续使用电脑", bg=BG, fg=MUTED,
                  font=font(11)).pack(side="left", padx=(8, 0))
@@ -161,12 +161,12 @@ class QuizOverlay(tk.Toplevel):
         self.progress_label = tk.Label(
             right, text="今日 %d / %d 词" % (today, target), bg=BG, fg=MUTED, font=font(11))
         self.progress_label.pack(side="right", padx=(0, 6))
-        self.progress_bar = tk.Frame(right, bg=CARD_LIGHT, height=8, width=160)
+        self.progress_bar = tk.Frame(right, bg=CARD_LIGHT, height=6, width=160)
         self.progress_bar.pack(side="right", padx=(0, 8))
         self.progress_bar.pack_propagate(False)
         ratio = min(1.0, today / float(target))
         if ratio > 0:
-            tk.Frame(self.progress_bar, bg=ACCENT, height=8).place(
+            tk.Frame(self.progress_bar, bg=ACCENT, height=6).place(
                 relx=0, rely=0, relwidth=ratio, relheight=1)
 
         body = tk.Frame(self, bg=BG)
@@ -176,7 +176,7 @@ class QuizOverlay(tk.Toplevel):
         self.card.pack(expand=True)
 
         inner = tk.Frame(self.card, bg=CARD)
-        inner.pack(padx=56, pady=36)
+        inner.pack(padx=56, pady=32)
         tk.Frame(inner, bg=CARD, width=780, height=1).pack()   # 固定卡片宽度
 
         self.index_label = tk.Label(inner, text="", bg=CARD, fg=MUTED, font=font(11))
@@ -202,7 +202,8 @@ class QuizOverlay(tk.Toplevel):
         self.entry = tk.Entry(entry_row, font=font(30, "normal", "Segoe UI"), justify="center",
                               width=24, bg=CARD_LIGHT, fg=TEXT, insertbackground=ACCENT,
                               disabledbackground=CARD_LIGHT, disabledforeground=OK,
-                              relief="flat", highlightthickness=2,
+                              selectbackground=ACCENT, selectforeground="#ffffff",
+                              relief="flat", highlightthickness=1,
                               highlightbackground=LINE, highlightcolor=ACCENT)
         self.entry.pack(ipady=10)
         self.entry.bind("<Return>", self._submit)
@@ -218,7 +219,7 @@ class QuizOverlay(tk.Toplevel):
         btn_row.pack(pady=(18, 0))
         self.submit_btn = tk.Button(
             btn_row, text="提交答案  ( Enter )", command=self._submit,
-            bg=ACCENT, fg="#ffffff", activebackground="#3d64d6", activeforeground="#ffffff",
+            bg=ACCENT, fg="#ffffff", activebackground=ACCENT_HOVER, activeforeground="#ffffff",
             relief="flat", bd=0, font=font(13, "bold"), padx=44, pady=12, cursor="hand2")
         self.submit_btn.pack(side="left")
         self.speak_btn = tk.Button(
@@ -228,7 +229,7 @@ class QuizOverlay(tk.Toplevel):
         if speech.available():
             self.speak_btn.pack(side="left", padx=(10, 0))
 
-        footer = tk.Frame(self, bg=BG, padx=48, pady=20)
+        footer = tk.Frame(self, bg=BG, padx=48, pady=16)
         footer.pack(fill="x")
         self.stat_label = tk.Label(footer, text="", bg=BG, fg=MUTED, font=font(10), anchor="w")
         self.stat_label.pack(side="left")

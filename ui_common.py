@@ -6,17 +6,18 @@ from tkinter import ttk
 
 import config
 
-# 配色（深色主题，减少屏幕刺眼）
-BG = "#0f1524"
-CARD = "#19223a"
-CARD_LIGHT = "#243052"
-ACCENT = "#4f7cff"
-OK = "#22c55e"
-ERR = "#f05b5b"
-WARN = "#f5a524"
-TEXT = "#e9eefc"
-MUTED = "#93a0c0"
-LINE = "#2c3859"
+# Trae 风格：中性石墨色、细分隔线、克制的蓝色强调
+BG = "#171717"
+CARD = "#212121"
+CARD_LIGHT = "#2c2c2c"
+ACCENT = "#4e8cff"
+ACCENT_HOVER = "#6a9bff"
+OK = "#55c9a5"
+ERR = "#f07480"
+WARN = "#d8a657"
+TEXT = "#ececec"
+MUTED = "#9d9d9d"
+LINE = "#393939"
 
 CN_FONT = "Microsoft YaHei UI"
 EN_FONT = "Segoe UI"
@@ -47,19 +48,58 @@ def apply_ttk_style(root):
     style.configure("Muted.TLabel", background=BG, foreground=MUTED, font=font(9))
     style.configure("CardMuted.TLabel", background=CARD, foreground=MUTED, font=font(9))
     style.configure("Title.TLabel", background=BG, foreground=TEXT, font=font(16, "bold"))
-    style.configure("TButton", font=font(10), padding=(10, 6))
-    style.configure("Accent.TButton", font=font(10, "bold"), padding=(12, 8))
-    style.configure("TNotebook", background=BG, borderwidth=0, tabmargins=(0, 6, 0, 0))
-    style.configure("TNotebook.Tab", font=font(10), padding=(16, 8))
-    style.configure("TCheckbutton", background=CARD, foreground=TEXT, font=font(10))
-    style.configure("TRadiobutton", background=CARD, foreground=TEXT, font=font(10))
-    style.configure("Treeview", font=font(10), rowheight=26, background="#101730",
-                    fieldbackground="#101730", foreground=TEXT, borderwidth=0)
+
+    style.configure("TButton", font=font(10), padding=(12, 7), background=CARD_LIGHT,
+                    foreground=TEXT, borderwidth=0, relief="flat")
+    style.map("TButton", background=[("active", LINE), ("pressed", LINE), ("disabled", CARD)],
+              foreground=[("disabled", MUTED)])
+    style.configure("Accent.TButton", font=font(10, "bold"), padding=(14, 8),
+                    background=ACCENT, foreground="#ffffff", borderwidth=0, relief="flat")
+    style.map("Accent.TButton", background=[("active", ACCENT_HOVER), ("pressed", ACCENT),
+                                            ("disabled", CARD_LIGHT)],
+              foreground=[("disabled", MUTED)])
+
+    style.configure("TNotebook", background=BG, borderwidth=0, tabmargins=(0, 8, 0, 0),
+                    bordercolor=LINE, lightcolor=LINE, darkcolor=LINE)
+    style.configure("TNotebook.Tab", font=font(10), padding=(16, 9), background=BG,
+                    foreground=MUTED, borderwidth=0, bordercolor=LINE,
+                    lightcolor=LINE, darkcolor=LINE, focuscolor=ACCENT)
+    style.map("TNotebook.Tab", background=[("selected", CARD), ("active", CARD_LIGHT)],
+              foreground=[("selected", TEXT), ("active", TEXT)])
+
+    for name in ("TCheckbutton", "TRadiobutton"):
+        style.configure(name, background=CARD, foreground=TEXT, font=font(10),
+                        indicatorbackground=CARD_LIGHT, indicatorforeground="#ffffff",
+                        bordercolor=LINE, focuscolor=ACCENT)
+        style.map(name, background=[("active", CARD)], foreground=[("disabled", MUTED)],
+                  indicatorbackground=[("selected", ACCENT), ("active", LINE)])
+
+    style.configure("TCombobox", fieldbackground=CARD_LIGHT, background=CARD_LIGHT,
+                    foreground=TEXT, arrowcolor=MUTED, bordercolor=LINE,
+                    lightcolor=LINE, darkcolor=LINE, insertcolor=TEXT, padding=(7, 5))
+    style.map("TCombobox", fieldbackground=[("readonly", CARD_LIGHT), ("focus", CARD_LIGHT)],
+              background=[("active", CARD_LIGHT)], foreground=[("disabled", MUTED)],
+              bordercolor=[("focus", ACCENT)], arrowcolor=[("active", TEXT)])
+    root.option_add("*TCombobox*Listbox.background", CARD_LIGHT)
+    root.option_add("*TCombobox*Listbox.foreground", TEXT)
+    root.option_add("*TCombobox*Listbox.selectBackground", ACCENT)
+    root.option_add("*TCombobox*Listbox.selectForeground", "#ffffff")
+
+    style.configure("TEntry", fieldbackground=CARD_LIGHT, foreground=TEXT,
+                    insertcolor=TEXT, bordercolor=LINE, lightcolor=LINE, darkcolor=LINE)
+    style.map("TEntry", bordercolor=[("focus", ACCENT)], foreground=[("disabled", MUTED)])
+    style.configure("Treeview", font=font(10), rowheight=30, background=CARD,
+                    fieldbackground=CARD, foreground=TEXT, borderwidth=0,
+                    bordercolor=LINE, lightcolor=LINE, darkcolor=LINE)
     style.configure("Treeview.Heading", font=font(10, "bold"), background=CARD_LIGHT,
-                    foreground=TEXT, borderwidth=0)
-    style.map("Treeview", background=[("selected", ACCENT)])
+                    foreground=TEXT, borderwidth=0, padding=(8, 7), relief="flat")
+    style.map("Treeview", background=[("selected", ACCENT)], foreground=[("selected", "#ffffff")])
+    style.map("Treeview.Heading", background=[("active", LINE)])
+    style.configure("TScrollbar", background=CARD_LIGHT, troughcolor=BG, bordercolor=BG,
+                    arrowcolor=MUTED, darkcolor=BG, lightcolor=BG)
+    style.map("TScrollbar", background=[("active", "#4a4a4a"), ("disabled", BG)])
     style.configure("Horizontal.TProgressbar", background=ACCENT, troughcolor=CARD_LIGHT,
-                    borderwidth=0, thickness=10)
+                    borderwidth=0, thickness=6, lightcolor=ACCENT, darkcolor=ACCENT)
     return style
 
 
@@ -85,12 +125,14 @@ class PasswordDialog(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self._cancel)
         center(self, width, height)
 
-        wrap = tk.Frame(self, bg=BG, padx=24, pady=18)
+        wrap = tk.Frame(self, bg=BG, padx=24, pady=20, highlightthickness=1,
+                        highlightbackground=LINE)
         wrap.pack(fill="both", expand=True)
         tk.Label(wrap, text=tip, bg=BG, fg=TEXT, font=font(12, "bold"),
                  anchor="w").pack(fill="x")
         self.entry = tk.Entry(wrap, show="*", font=font(13), width=22,
-                              bg=CARD, fg=TEXT, insertbackground=TEXT,
+                              bg=CARD_LIGHT, fg=TEXT, insertbackground=TEXT,
+                              selectbackground=ACCENT, selectforeground="#ffffff",
                               relief="flat", highlightthickness=1,
                               highlightbackground=LINE, highlightcolor=ACCENT)
         self.entry.pack(fill="x", pady=(14, 6), ipady=8)
@@ -103,7 +145,7 @@ class PasswordDialog(tk.Toplevel):
                   activebackground=LINE, activeforeground=TEXT, relief="flat",
                   font=font(10), padx=18, pady=6, bd=0).pack(side="right")
         tk.Button(btns, text="确定", command=self._confirm, bg=ACCENT, fg="#ffffff",
-                  activebackground="#3d64d6", activeforeground="#ffffff", relief="flat",
+                  activebackground=ACCENT_HOVER, activeforeground="#ffffff", relief="flat",
                   font=font(10, "bold"), padx=20, pady=6, bd=0).pack(side="right", padx=(0, 10))
 
         self.entry.bind("<Return>", lambda e: self._confirm())
