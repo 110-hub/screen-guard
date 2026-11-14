@@ -49,7 +49,7 @@ class Tray:
             pystray.MenuItem("退出（需密码）", self._quit),
         )
         self.icon = pystray.Icon("ScreenGuard", _make_image(),
-                                 "屏幕管控 · 初中英语单词", menu)
+                                 "屏幕管控 · 英语单词", menu)
         self.thread = threading.Thread(target=self.icon.run, name="tray", daemon=True)
         self.thread.start()
         return True

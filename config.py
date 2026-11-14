@@ -40,12 +40,18 @@ DEFAULT_SETTINGS = {
 
 SCOPE_LABELS = {
     "all": "全部词库",
+    "primary": "小学",
+    "junior": "初中",
     "grade7": "七年级",
     "grade8": "八年级",
     "grade9": "九年级",
+    "senior": "高中",
     "wrong": "仅错词本",
 }
 SCOPE_GRADE = {"grade7": 7, "grade8": 8, "grade9": 9}
+SCOPE_GRADES = {"primary": (1, 2, 3, 4, 5, 6), "junior": (7, 8, 9), "senior": (10, 11, 12)}
+
+LEVEL_LABELS = {"primary": "小学", "junior": "初中", "senior": "高中"}
 
 AUTOSTART_NAME = "屏幕管控.bat"
 
@@ -58,16 +64,20 @@ def ensure_dirs():
 
 
 def seed_words():
-    """首次运行（安装后）把内置词库释放到可编辑的 data/words 目录。"""
+    """把内置词库释放到 data/words：缺哪个补哪个，已有文件不覆盖。"""
     ensure_dirs()
-    if os.path.isdir(BUNDLED_WORDS_DIR) and not os.listdir(WORDS_DIR):
-        for name in os.listdir(BUNDLED_WORDS_DIR):
-            if name.endswith(".txt"):
-                try:
-                    shutil.copy2(os.path.join(BUNDLED_WORDS_DIR, name),
-                                 os.path.join(WORDS_DIR, name))
-                except OSError:
-                    pass
+    if not os.path.isdir(BUNDLED_WORDS_DIR):
+        return
+    for name in os.listdir(BUNDLED_WORDS_DIR):
+        if not name.endswith(".txt"):
+            continue
+        target = os.path.join(WORDS_DIR, name)
+        if os.path.exists(target):
+            continue
+        try:
+            shutil.copy2(os.path.join(BUNDLED_WORDS_DIR, name), target)
+        except OSError:
+            pass
 
 
 def load_settings():

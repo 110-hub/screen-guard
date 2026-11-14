@@ -9,7 +9,9 @@ import config
 import ui_common
 from ui_common import ACCENT, BG, CARD, CARD_LIGHT, ERR, LINE, MUTED, OK, TEXT, WARN, font
 
-GRADE_TEXT = {7: "七年级", 8: "八年级", 9: "九年级"}
+GRADE_TEXT = {g: "小学" for g in range(1, 7)}
+GRADE_TEXT.update({7: "七年级", 8: "八年级", 9: "九年级"})
+GRADE_TEXT.update({g: "高中" for g in range(10, 13)})
 
 
 class AdminWindow(tk.Toplevel):
@@ -127,7 +129,7 @@ class AdminWindow(tk.Toplevel):
                                  font=font(10))
         scope_box.grid(row=6, column=1, sticky="w", pady=4)
         self.scope_box = scope_box
-        tk.Label(card, text="只考某一个年级，或只复习错词本", bg=CARD, fg=MUTED,
+        tk.Label(card, text="可按学段（小学/初中/高中）、年级，或只复习错词本", bg=CARD, fg=MUTED,
                  font=font(9)).grid(row=6, column=2, columnspan=2, sticky="w", padx=(12, 0))
 
         checks = tk.Frame(card, bg=CARD)
@@ -360,11 +362,11 @@ class AdminWindow(tk.Toplevel):
             self.word_tree.insert("", "end", values=(
                 entry["word"], entry["pos"], entry["meaning"],
                 GRADE_TEXT.get(entry["grade"], "-")))
-        counts = self.controller.bank.grade_counts()
+        counts = self.controller.bank.level_counts()
         self.bank_label.config(
-            text="词库共 %d 词（七 %d / 八 %d / 九 %d）　%s"
-                 % (self.controller.bank.total(), counts.get(7, 0), counts.get(8, 0),
-                    counts.get(9, 0), "搜索结果 %d 条" % len(entries) if keyword else ""))
+            text="词库共 %d 词（小学 %d / 初中 %d / 高中 %d）　%s"
+                 % (self.controller.bank.total(), counts["primary"], counts["junior"],
+                    counts["senior"], "搜索结果 %d 条" % len(entries) if keyword else ""))
 
     def _clear_search(self):
         self.search_var.set("")

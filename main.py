@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""屏幕管控 · 初中英语单词锁屏后台
+"""屏幕管控 · 英语单词锁屏后台
 
 启动方式：双击 run.bat / 安装后的 ScreenGuard.exe，或执行  pythonw main.py
 """

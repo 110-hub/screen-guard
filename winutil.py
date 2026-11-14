@@ -88,9 +88,9 @@ def create_all_shortcuts(exe_path, with_desktop=True, with_startmenu=True, with_
     ok = True
     desktop, startmenu, startup = shortcut_paths()
     if with_desktop:
-        ok &= create_shortcut(desktop, exe_path, description=APP_NAME + " · 初中英语单词锁屏")
+        ok &= create_shortcut(desktop, exe_path, description=APP_NAME + " · 英语单词锁屏")
     if with_startmenu:
-        ok &= create_shortcut(startmenu, exe_path, description=APP_NAME + " · 初中英语单词锁屏")
+        ok &= create_shortcut(startmenu, exe_path, description=APP_NAME + " · 英语单词锁屏")
     if with_startup:
         ok &= create_shortcut(startup, exe_path, arguments="--silent",
                               description=APP_NAME + " · 开机静默启动")
@@ -118,8 +118,8 @@ def write_uninstall_registry(install_dir, exe_path):
         key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, UNINSTALL_KEY)
     except OSError:
         return False
-    values = {"DisplayName": (APP_NAME + " - 初中英语单词锁屏", winreg.REG_SZ),
-              "DisplayVersion": ("1.1.0", winreg.REG_SZ),
+    values = {"DisplayName": (APP_NAME + " - 英语单词锁屏", winreg.REG_SZ),
+              "DisplayVersion": ("1.2.0", winreg.REG_SZ),
               "Publisher": (APP_NAME, winreg.REG_SZ),
               "DisplayIcon": (exe_path, winreg.REG_SZ),
               "InstallLocation": (install_dir, winreg.REG_SZ),

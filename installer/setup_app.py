@@ -9,7 +9,9 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
+import time
 import tkinter as tk
 import zipfile
 from tkinter import ttk
@@ -61,6 +63,30 @@ def count_payload_files():
     return max(1, sum(len(files) for _, _, files in os.walk(PAYLOAD_DIR)))
 
 
+LOG_PATH = os.path.join(tempfile.gettempdir(), "screenguard_setup.log")
+
+
+def log_line(text):
+    """静默安装没有控制台，进度与错误写到临时日志。"""
+    try:
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(time.strftime("%H:%M:%S ") + text + "\n")
+    except OSError:
+        pass
+
+
+def _with_retry(call, attempts=8, delay=0.7):
+    """刚结束的旧程序或杀毒软件可能短暂占用文件，失败时重试。"""
+    last = None
+    for _ in range(attempts):
+        try:
+            return call()
+        except PermissionError as exc:
+            last = exc
+            time.sleep(delay)
+    raise last
+
+
 def do_install(status=None, progress=None, with_desktop=True, with_startup=True):
     """把程序装到 TARGET_DIR 并注册快捷方式/自启/卸载信息，返回 exe 路径。"""
     status = status or (lambda *a, **k: None)
@@ -68,6 +94,7 @@ def do_install(status=None, progress=None, with_desktop=True, with_startup=True)
 
     status("正在结束已运行的旧实例...")
     winutil.stop_running_app()
+    time.sleep(0.8)          # 等待文件句柄释放
 
     total = count_payload_files()
     os.makedirs(TARGET_DIR, exist_ok=True)
@@ -80,12 +107,19 @@ def do_install(status=None, progress=None, with_desktop=True, with_startup=True)
                 if info.filename.endswith("/"):
                     continue
                 rel = info.filename.replace("/", os.sep)
-                if rel.split(os.sep)[0].lower() == "data":
-                    continue                     # 不覆盖已有学习数据
                 target = os.path.join(TARGET_DIR, rel)
+                if rel.split(os.sep)[0].lower() == "data" and os.path.exists(target):
+                    continue                     # 不覆盖已有学习数据，只补新增词库
                 os.makedirs(os.path.dirname(target), exist_ok=True)
-                with zf.open(info) as src, open(target, "wb") as dst:
-                    shutil.copyfileobj(src, dst)
+
+                def write_entry(entry=info, dest=target):
+                    try:
+                        with zf.open(entry) as src, open(dest, "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+                    except PermissionError as exc:
+                        raise PermissionError(exc.errno, exc.strerror, dest)
+
+                _with_retry(write_entry)
                 done += 1
                 if done % 40 == 0:
                     progress(min(85, done * 85.0 / total))
@@ -96,10 +130,12 @@ def do_install(status=None, progress=None, with_desktop=True, with_startup=True)
             rel_dir = os.path.relpath(base, PAYLOAD_DIR)
             out_dir = TARGET_DIR if rel_dir == "." else os.path.join(TARGET_DIR, rel_dir)
             os.makedirs(out_dir, exist_ok=True)
+            is_data = rel_dir.split(os.sep)[0].lower() == "data"
             for name in files:
-                if rel_dir == "." and name.lower().startswith("data"):
+                target = os.path.join(out_dir, name)
+                if is_data and os.path.exists(target):
                     continue
-                shutil.copy2(os.path.join(base, name), os.path.join(out_dir, name))
+                _with_retry(lambda b=base, n=name, t=target: shutil.copy2(os.path.join(b, n), t))
                 done += 1
                 if done % 40 == 0:
                     progress(min(85, done * 85.0 / total))
@@ -146,7 +182,7 @@ class SetupApp:
         header = tk.Frame(self.root, bg=CARD, height=92)
         header.pack(fill="x")
         header.pack_propagate(False)
-        tk.Label(header, text="屏幕管控 · 初中英语单词锁屏", bg=CARD, fg=TEXT,
+        tk.Label(header, text="屏幕管控 · 英语单词锁屏", bg=CARD, fg=TEXT,
                  font=font(16, "bold")).pack(anchor="w", padx=26, pady=(18, 2))
         tk.Label(header, text="按周期弹出中文释义，拼写正确英文后才能继续使用电脑",
                  bg=CARD, fg=MUTED, font=font(9)).pack(anchor="w", padx=26)
@@ -241,12 +277,16 @@ class SetupApp:
 
 def main():
     if not payload_ready():
-        print("安装包损坏：缺少 payload.zip")
+        log_line("安装包损坏：缺少 payload.zip")
         return 1
     if "--silent" in sys.argv:
-        exe_path = do_install(status=lambda msg: print(msg),
-                              progress=lambda v: None)
-        print("安装完成：%s" % exe_path)
+        log_line("开始静默安装")
+        try:
+            exe_path = do_install(status=log_line, progress=lambda v: None)
+        except Exception as exc:
+            log_line("安装失败：%r 文件=%s" % (exc, getattr(exc, "filename", "")))
+            return 1
+        log_line("安装完成：%s" % exe_path)
         return 0
     SetupApp().run()
     return 0

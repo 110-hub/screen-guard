@@ -60,7 +60,7 @@ if ($Uninstall) {
     exit 0
 }
 
-Write-Host "正在安装【屏幕管控 · 初中英语单词锁屏】..." -ForegroundColor Cyan
+Write-Host "正在安装【屏幕管控 · 英语单词锁屏】..." -ForegroundColor Cyan
 
 $source = Join-Path $PSScriptRoot "ScreenGuard"
 if (-not (Test-Path (Join-Path $source $ExeName))) {
@@ -78,10 +78,10 @@ Copy-Item -Path (Join-Path $source "*") -Destination $Dest -Recurse -Force
 
 # 快捷方式
 New-Shortcut (Join-Path ([Environment]::GetFolderPath('Desktop')) "屏幕管控.lnk") `
-    (Join-Path $Dest $ExeName) "屏幕管控 · 初中英语单词锁屏"
+    (Join-Path $Dest $ExeName) "屏幕管控 · 英语单词锁屏"
 New-Item -ItemType Directory -Force -Path (Join-Path ([Environment]::GetFolderPath('StartMenu')) "Programs") | Out-Null
 New-Shortcut (Join-Path ([Environment]::GetFolderPath('StartMenu')) "Programs\屏幕管控.lnk") `
-    (Join-Path $Dest $ExeName) "屏幕管控 · 初中英语单词锁屏"
+    (Join-Path $Dest $ExeName) "屏幕管控 · 英语单词锁屏"
 
 # 开机自启（静默启动，只显示托盘图标）
 if (Set-Autostart (Join-Path $Dest $ExeName)) {
@@ -93,7 +93,7 @@ if (Set-Autostart (Join-Path $Dest $ExeName)) {
 # 注册卸载信息（显示在 Windows「应用和功能」列表）
 try {
     New-Item -Path $UninstallKey -Force | Out-Null
-    Set-ItemProperty -Path $UninstallKey -Name DisplayName -Value "屏幕管控 - 初中英语单词锁屏"
+    Set-ItemProperty -Path $UninstallKey -Name DisplayName -Value "屏幕管控 - 英语单词锁屏"
     Set-ItemProperty -Path $UninstallKey -Name DisplayVersion -Value "1.0.0"
     Set-ItemProperty -Path $UninstallKey -Name Publisher -Value "屏幕管控"
     Set-ItemProperty -Path $UninstallKey -Name DisplayIcon -Value (Join-Path $Dest $ExeName)

@@ -24,16 +24,25 @@ class WordBank:
     def load(self):
         self.entries = []
         self.words = {}
+        seen = set()
         config.ensure_dirs()
         files = sorted(glob.glob(os.path.join(self.words_dir, "*.txt")))
         for path in files:
             with open(path, "r", encoding="utf-8") as f:
                 for raw in f:
                     entry = self._parse(raw)
-                    if entry and entry["word"] not in self.words:
+                    if not entry:
+                        continue
+                    key = (entry["word"], entry["grade"])
+                    if key in seen:
+                        continue
+                    # 同一单词可以同时属于多个学段；查词含义时取年级最低的那条
+                    seen.add(key)
+                    self.entries.append(entry)
+                    old = self.words.get(entry["word"])
+                    if old is None or entry["grade"] < old["grade"]:
                         self.words[entry["word"]] = entry
-                        self.entries.append(entry)
-        return len(self.entries)
+        return len(self.words)
 
     def _parse(self, raw):
         line = raw.strip()
@@ -53,28 +62,39 @@ class WordBank:
             grade = int(parts[3]) if len(parts) > 3 else 8
         except ValueError:
             grade = 8
-        if grade not in (7, 8, 9):
+        if grade not in range(1, 13):
             grade = 8
         return {"word": word, "pos": pos, "meaning": meaning, "grade": grade}
 
     # ----------------------------- 查询 -----------------------------
     def total(self):
-        return len(self.entries)
+        return len(self.words)
 
     def grade_counts(self):
-        counts = {7: 0, 8: 0, 9: 0}
+        counts = {g: 0 for g in range(1, 13)}
         for entry in self.entries:
             counts[entry["grade"]] = counts.get(entry["grade"], 0) + 1
         return counts
+
+    def level_counts(self):
+        counts = self.grade_counts()
+        return {
+            "primary": sum(counts.get(g, 0) for g in range(1, 7)),
+            "junior": sum(counts.get(g, 0) for g in range(7, 10)),
+            "senior": sum(counts.get(g, 0) for g in range(10, 13)),
+        }
 
     def get(self, word):
         return self.words.get((word or "").lower())
 
     def _in_scope(self, scope):
         grade = config.SCOPE_GRADE.get(scope)
-        if grade is None:
-            return self.entries
-        return [e for e in self.entries if e["grade"] == grade]
+        if grade is not None:
+            return [e for e in self.entries if e["grade"] == grade]
+        grades = config.SCOPE_GRADES.get(scope)
+        if grades:
+            return [e for e in self.entries if e["grade"] in grades]
+        return self.entries
 
     # ----------------------------- 抽题 -----------------------------
     def pick(self, scope="all", progress=None, count=1):
@@ -114,6 +134,17 @@ class WordBank:
     def search(self, keyword, limit=200):
         keyword = (keyword or "").strip().lower()
         if not keyword:
-            return self.entries[:limit]
-        return [e for e in self.entries
-                if keyword in e["word"] or keyword in e["meaning"]][:limit]
+            matched = self.entries
+        else:
+            matched = [e for e in self.entries
+                       if keyword in e["word"] or keyword in e["meaning"]]
+        result, seen = [], set()
+        for entry in matched:
+            word = entry["word"]
+            if word in seen:
+                continue
+            seen.add(word)
+            result.append(self.words.get(word, entry))
+            if len(result) >= limit:
+                break
+        return result
